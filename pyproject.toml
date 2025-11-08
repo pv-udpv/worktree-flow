@@ -1,0 +1,67 @@
+[project]
+name = "worktree-flow"
+version = "0.1.0"
+description = "Advanced Git worktree workflow with unified FastAPI + auto-generated CLI/MCP"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "Pavel Vavilov", email = "ormwish@gmail.com"}
+]
+keywords = ["git", "worktree", "workflow", "fastapi", "typer", "mcp", "ai"]
+
+dependencies = [
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "typer>=0.12.0",
+    "rich>=13.7.0",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "pygithub>=2.1.1",
+    "gitpython>=3.1.40",
+    "mcp>=0.9.0",
+    "httpx>=0.26.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.1.0",
+    "mypy>=1.7.0",
+    "black>=23.12.0",
+]
+
+[project.scripts]
+worktree = "worktree_flow.cli.app:main"
+worktree-api = "worktree_flow.api.app:serve"
+worktree-mcp = "worktree_flow.mcp.server:main"
+
+[project.urls]
+Homepage = "https://github.com/pv-udpv/worktree-flow"
+Repository = "https://github.com/pv-udpv/worktree-flow"
+Issues = "https://github.com/pv-udpv/worktree-flow/issues"
+Documentation = "https://github.com/pv-udpv/worktree-flow/blob/main/docs"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"

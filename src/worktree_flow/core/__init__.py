@@ -15,3 +15,6 @@ __all__ = [
     "load_envrc",
     "validate_envrc",
 ]
+from .worktree_manager import WorktreeManager
+
+__all__ = ["WorktreeManager"]

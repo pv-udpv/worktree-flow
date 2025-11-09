@@ -158,11 +158,50 @@ def create(
         worktree create DEV-123 --provider linear
         worktree create 7 --repo /path/to/repo
     """
+    from ..core import WorktreeManager
+    from ..models import WorktreeCreate, WorktreeType
+    from ..providers.github import GitHubIssueProvider
+
     console.print(f"[bold]Creating worktree from issue {issue_id}[/bold]")
     console.print(f"Provider: {provider}")
-    if repo_path:
-        console.print(f"Repository: {repo_path}")
-    console.print("[yellow]⚠️  Not implemented yet - coming soon![/yellow]")
+
+    # Determine repository path
+    actual_repo_path = repo_path or settings.default_repo or Path.cwd()
+    console.print(f"Repository: {actual_repo_path}")
+
+    try:
+        # Initialize manager
+        manager = WorktreeManager(actual_repo_path)
+
+        # Create issue provider if configured
+        issue_provider = None
+        if provider == "github" and settings.github_token and settings.github_repo:
+            issue_provider = GitHubIssueProvider(
+                token=settings.github_token,
+                repo_name=settings.github_repo,
+            )
+            console.print("[dim]Using GitHub provider[/dim]")
+
+        # Create worktree
+        create_req = WorktreeCreate(
+            issue_id=issue_id,
+            provider=provider,
+            worktree_type=WorktreeType.ISSUE,
+            repo_path=actual_repo_path,
+        )
+
+        console.print("[dim]Creating worktree...[/dim]")
+        worktree_info = manager.create_worktree(create_req, issue_provider)
+
+        console.print("[bold green]✓ Worktree created successfully![/bold green]")
+        console.print(f"Path: {worktree_info.path}")
+        console.print(f"Branch: {worktree_info.branch}")
+        if worktree_info.metadata and worktree_info.metadata.title:
+            console.print(f"Title: {worktree_info.metadata.title}")
+
+    except Exception as e:
+        console.print(f"[bold red]✗ Error:[/bold red] {e}")
+        raise typer.Exit(code=1)
 
 
 @app.command()
@@ -226,10 +265,49 @@ def list(
         worktree list
         worktree list --repo /path/to/repo
     """
+    from ..core import WorktreeManager
+    from rich.table import Table
+
+    # Determine repository path
+    actual_repo_path = repo_path or settings.default_repo or Path.cwd()
     console.print("[bold]Listing worktrees...[/bold]")
-    if repo_path:
-        console.print(f"Repository: {repo_path}")
-    console.print("[yellow]⚠️  Not implemented yet - coming soon![/yellow]")
+    console.print(f"Repository: {actual_repo_path}")
+    console.print()
+
+    try:
+        # Initialize manager
+        manager = WorktreeManager(actual_repo_path)
+
+        # List worktrees
+        worktree_list = manager.list_worktrees()
+
+        if worktree_list.total == 0:
+            console.print("[yellow]No worktrees found[/yellow]")
+            return
+
+        # Create table
+        table = Table(title=f"Worktrees ({worktree_list.total})")
+        table.add_column("Name", style="cyan")
+        table.add_column("Type", style="magenta")
+        table.add_column("Branch", style="green")
+        table.add_column("Base", style="blue")
+        table.add_column("Status", style="yellow")
+
+        for wt in worktree_list.worktrees:
+            status = wt.metadata.status if wt.metadata else "unknown"
+            table.add_row(
+                wt.name,
+                wt.worktree_type.value,
+                wt.branch,
+                wt.base_branch,
+                status,
+            )
+
+        console.print(table)
+
+    except Exception as e:
+        console.print(f"[bold red]✗ Error:[/bold red] {e}")
+        raise typer.Exit(code=1)
 
 
 @app.command()

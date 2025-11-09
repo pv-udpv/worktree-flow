@@ -57,15 +57,82 @@ def init(
         Path.cwd(),
         help="Repository path to initialize",
     ),
+    no_envrc: bool = typer.Option(
+        False,
+        "--no-envrc",
+        help="Skip .envrc creation",
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help="Overwrite existing .envrc",
+    ),
 ):
     """Initialize repository for worktree workflow.
+
+    Creates .envrc configuration file with example settings.
+    If direnv is installed, the environment will be automatically loaded.
 
     Example:
         worktree init
         worktree init /path/to/repo
+        worktree init --no-envrc
+        worktree init --force
     """
+    from ..core.init import initialize_repository
+    
     console.print(f"[bold]Initializing worktree workflow for:[/bold] {repo_path}")
-    console.print("[yellow]⚠️  Not implemented yet - coming soon![/yellow]")
+    console.print()
+    
+    # Initialize repository
+    results = initialize_repository(
+        repo_path=repo_path,
+        create_envrc=not no_envrc,
+        force_create=force,
+    )
+    
+    # Display results
+    if results["envrc_created"]:
+        console.print("[green]✓[/green] Created .envrc configuration file")
+        console.print(f"  → {repo_path / '.envrc'}")
+    elif results["envrc_exists"]:
+        if results["envrc_valid"]:
+            console.print("[green]✓[/green] Found existing .envrc file")
+        else:
+            console.print("[yellow]⚠[/yellow] Found .envrc but validation failed")
+        console.print(f"  → {repo_path / '.envrc'}")
+    
+    # Check direnv
+    if results["direnv_available"]:
+        console.print("[green]✓[/green] direnv is available")
+        if results["envrc_exists"]:
+            console.print("  → Run [bold]direnv allow[/bold] to load environment")
+    else:
+        console.print("[yellow]⚠[/yellow] direnv is not installed")
+        console.print("  → Install direnv to automatically load .envrc")
+        console.print("  → Visit: https://direnv.net/")
+    
+    # Show loaded environment variables
+    if results["loaded_env_vars"]:
+        console.print()
+        console.print("[bold]Environment variables found in .envrc:[/bold]")
+        for key, value in sorted(results["loaded_env_vars"].items()):
+            # Truncate long values
+            display_value = value if len(value) <= 50 else value[:47] + "..."
+            console.print(f"  • {key} = {display_value}")
+    
+    console.print()
+    console.print("[green]✓[/green] Initialization complete!")
+    console.print()
+    console.print("[dim]Next steps:[/dim]")
+    console.print("  1. Edit .envrc to configure your environment")
+    if results["direnv_available"]:
+        console.print("  2. Run [bold]direnv allow[/bold] to load the environment")
+        console.print("  3. Start using worktree commands")
+    else:
+        console.print("  2. Source .envrc manually or install direnv")
+        console.print("  3. Start using worktree commands")
 
 
 @app.command()

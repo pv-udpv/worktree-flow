@@ -61,3 +61,7 @@ Thumbs.db
 .worktree-flow/
 *.db
 *.sqlite
+
+# Environment overrides
+.envrc.local
+.env.local

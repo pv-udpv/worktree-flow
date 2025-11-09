@@ -32,7 +32,18 @@ class WorktreeManager:
         Args:
             repo_path: Path to the Git repository
         """
-        self.repo_path = Path(repo_path).resolve()
+        # Validate and resolve path to prevent path injection
+        try:
+            resolved_path = Path(repo_path).resolve(strict=True)
+            # Ensure the path exists and is not a symlink to somewhere unexpected
+            if not resolved_path.exists():
+                raise ValueError(f"Repository path does not exist: {repo_path}")
+            if not resolved_path.is_dir():
+                raise ValueError(f"Repository path is not a directory: {repo_path}")
+            self.repo_path = resolved_path
+        except (OSError, RuntimeError) as e:
+            raise ValueError(f"Invalid repository path: {repo_path}") from e
+
         try:
             self.repo = Repo(self.repo_path)
         except git.exc.InvalidGitRepositoryError as e:

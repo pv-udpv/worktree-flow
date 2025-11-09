@@ -5,6 +5,7 @@ from typing import Type
 
 from .base import IssueProvider, PRProvider, GitProvider
 from .github import GitHubIssueProvider, GitHubPRProvider, GitHubGitProvider
+from .linear import LinearIssueProvider
 
 
 class ProviderType(str, Enum):
@@ -21,6 +22,7 @@ class ProviderRegistry:
 
     _issue_providers: dict[ProviderType, Type[IssueProvider]] = {
         ProviderType.GITHUB: GitHubIssueProvider,
+        ProviderType.LINEAR: LinearIssueProvider,
     }
 
     _pr_providers: dict[ProviderType, Type[PRProvider]] = {

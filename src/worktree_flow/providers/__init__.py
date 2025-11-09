@@ -2,6 +2,7 @@
 
 from .base import IssueProvider, PRProvider, GitProvider
 from .github import GitHubIssueProvider, GitHubPRProvider, GitHubGitProvider
+from .linear import LinearIssueProvider
 from .registry import ProviderRegistry, ProviderType
 
 __all__ = [
@@ -11,6 +12,7 @@ __all__ = [
     "GitHubIssueProvider",
     "GitHubPRProvider",
     "GitHubGitProvider",
+    "LinearIssueProvider",
     "ProviderRegistry",
     "ProviderType",
 ]

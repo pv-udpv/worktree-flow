@@ -28,6 +28,9 @@ def create_example_envrc(repo_path: Path) -> Path:
     
     example_content = """# Worktree Flow environment configuration
 # This file is loaded by direnv (https://direnv.net/)
+#
+# NOTE: This file is committed to the repository.
+# For local overrides, create .envrc.local (which is gitignored)
 
 # Export repository path
 export WORKTREE_DEFAULT_REPO="$(pwd)"
@@ -60,6 +63,9 @@ export WORKTREE_ENFORCE_GUARDRAILS="true"
 
 # Logging
 export WORKTREE_LOG_LEVEL="INFO"
+
+# Load local overrides if present
+[[ -f .envrc.local ]] && source_env .envrc.local
 """
     
     envrc_path.write_text(example_content)

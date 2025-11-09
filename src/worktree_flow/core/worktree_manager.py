@@ -31,19 +31,34 @@ class WorktreeManager:
 
         Args:
             repo_path: Path to the Git repository
+        
+        Raises:
+            ValueError: If path is invalid or not a Git repository
         """
         # Validate and resolve path to prevent path injection
         try:
-            resolved_path = Path(repo_path).resolve(strict=True)
-            # Ensure the path exists and is not a symlink to somewhere unexpected
+            # Convert to Path object and resolve to absolute path
+            path_obj = Path(repo_path)
+            
+            # Require absolute paths or convert CWD-relative paths
+            if not path_obj.is_absolute():
+                path_obj = Path.cwd() / path_obj
+            
+            resolved_path = path_obj.resolve(strict=True)
+            
+            # Additional security checks
             if not resolved_path.exists():
                 raise ValueError(f"Repository path does not exist: {repo_path}")
             if not resolved_path.is_dir():
                 raise ValueError(f"Repository path is not a directory: {repo_path}")
+            
+            # Store the validated, absolute path
             self.repo_path = resolved_path
+            
         except (OSError, RuntimeError) as e:
             raise ValueError(f"Invalid repository path: {repo_path}") from e
 
+        # Verify it's actually a Git repository using GitPython
         try:
             self.repo = Repo(self.repo_path)
         except git.exc.InvalidGitRepositoryError as e:
@@ -173,12 +188,13 @@ class WorktreeManager:
                     # Continue without title if fetch fails
                     title = f"Issue {issue_number}"
 
-            # Generate worktree name
-            worktree_name = f"{create_req.worktree_type.value}-{issue_number}"
+            # Generate worktree name (sanitized to prevent path traversal)
+            worktree_name = self._sanitize_name(f"{create_req.worktree_type.value}-{issue_number}")
             branch_name = f"{create_req.worktree_type.value}/{issue_number}"
         else:
             # Custom worktree without issue
-            worktree_name = f"custom-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+            timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+            worktree_name = self._sanitize_name(f"custom-{timestamp}")
             branch_name = worktree_name
 
         # Validate before creating
@@ -361,3 +377,29 @@ class WorktreeManager:
         metadata_file = worktree_path / self.METADATA_FILE
         with open(metadata_file, "w") as f:
             json.dump(metadata.model_dump(mode="json"), f, indent=2, default=str)
+
+    def _sanitize_name(self, name: str) -> str:
+        """Sanitize worktree name to prevent path traversal.
+
+        Args:
+            name: The name to sanitize
+
+        Returns:
+            Sanitized name safe for use in file paths
+
+        Raises:
+            ValueError: If name is invalid after sanitization
+        """
+        import re
+        
+        # Remove any path separators and other dangerous characters
+        sanitized = re.sub(r'[/\\\.]+', '-', name)
+        sanitized = re.sub(r'[^a-zA-Z0-9\-_]', '', sanitized)
+        
+        # Ensure it's not empty and doesn't start with a dash
+        sanitized = sanitized.strip('-_')
+        
+        if not sanitized:
+            raise ValueError(f"Invalid name after sanitization: {name}")
+        
+        return sanitized

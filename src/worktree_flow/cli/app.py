@@ -61,10 +61,10 @@ def init(
     """Initialize repository for worktree workflow.
 
     Example:
+        worktree init
         worktree init /path/to/repo
     """
     console.print(f"[bold]Initializing worktree workflow for:[/bold] {repo_path}")
-    # TODO: Implement initialization
     console.print("[yellow]⚠️  Not implemented yet - coming soon![/yellow]")
 
 
@@ -75,30 +75,115 @@ def create(
         settings.default_issue_provider,
         "--provider",
         "-p",
-        help="Provider name",
+        help="Provider name (github, linear, jira)",
+    ),
+    repo_path: Path = typer.Option(
+        None,
+        "--repo",
+        "-r",
+        help="Repository path",
     ),
 ):
     """Create worktree from issue.
 
-    Example:
+    Examples:
         worktree create 7
         worktree create DEV-123 --provider linear
+        worktree create 7 --repo /path/to/repo
     """
     console.print(f"[bold]Creating worktree from issue {issue_id}[/bold]")
     console.print(f"Provider: {provider}")
-    # TODO: Implement with WorktreeManager
+    if repo_path:
+        console.print(f"Repository: {repo_path}")
     console.print("[yellow]⚠️  Not implemented yet - coming soon![/yellow]")
 
 
 @app.command()
-def list():
+def epic(
+    issue_id: str = typer.Argument(..., help="Epic issue ID"),
+    repo_path: Path = typer.Option(
+        None,
+        "--repo",
+        "-r",
+        help="Repository path",
+    ),
+):
+    """Create epic-level worktree.
+
+    Examples:
+        worktree epic 7
+        worktree epic 7 --repo /path/to/repo
+    """
+    console.print(f"[bold]Creating epic worktree from issue {issue_id}[/bold]")
+    if repo_path:
+        console.print(f"Repository: {repo_path}")
+    console.print("[yellow]⚠️  Not implemented yet - coming soon![/yellow]")
+
+
+@app.command()
+def feature(
+    issue_id: str = typer.Argument(..., help="Feature issue ID"),
+    parent: str = typer.Argument(..., help="Parent worktree name"),
+    repo_path: Path = typer.Option(
+        None,
+        "--repo",
+        "-r",
+        help="Repository path",
+    ),
+):
+    """Create feature worktree under epic.
+
+    Examples:
+        worktree feature 7.1 epic-7
+        worktree feature 7.1 epic-7 --repo /path/to/repo
+    """
+    console.print(f"[bold]Creating feature worktree from issue {issue_id}[/bold]")
+    console.print(f"Parent: {parent}")
+    if repo_path:
+        console.print(f"Repository: {repo_path}")
+    console.print("[yellow]⚠️  Not implemented yet - coming soon![/yellow]")
+
+
+@app.command()
+def list(
+    repo_path: Path = typer.Option(
+        None,
+        "--repo",
+        "-r",
+        help="Repository path",
+    ),
+):
     """List all worktrees.
 
-    Example:
+    Examples:
         worktree list
+        worktree list --repo /path/to/repo
     """
     console.print("[bold]Listing worktrees...[/bold]")
-    # TODO: Implement listing
+    if repo_path:
+        console.print(f"Repository: {repo_path}")
+    console.print("[yellow]⚠️  Not implemented yet - coming soon![/yellow]")
+
+
+@app.command()
+def info(
+    worktree_name: str = typer.Argument(..., help="Worktree name"),
+    repo_path: Path = typer.Option(
+        None,
+        "--repo",
+        "-r",
+        help="Repository path",
+    ),
+):
+    """Show worktree information.
+
+    Examples:
+        worktree info issue-7
+        worktree info epic-7 --repo /path/to/repo
+    """
+    console.print(f"[bold]Worktree info: {worktree_name}[/bold]")
+    if repo_path:
+        console.print(f"Repository: {repo_path}")
     console.print("[yellow]⚠️  Not implemented yet - coming soon![/yellow]")
 
 

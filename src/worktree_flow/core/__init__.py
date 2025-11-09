@@ -1,3 +1,5 @@
 """Core business logic."""
 
-# TODO: Add WorktreeManager, ValidationManager, etc.
+from .worktree_manager import WorktreeManager
+
+__all__ = ["WorktreeManager"]

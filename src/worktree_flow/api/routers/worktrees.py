@@ -27,11 +27,35 @@ async def create_from_issue(
     **Response:**
     - Returns WorktreeInfo with path, branch, and metadata
     """
-    # TODO: Implement with WorktreeManager
-    raise HTTPException(
-        status_code=501,
-        detail="Not implemented yet - coming soon!",
-    )
+    from ...core import WorktreeManager
+    from ...models import WorktreeCreate
+    from ...providers.github import GitHubIssueProvider
+    from ...config import settings
+
+    try:
+        manager = WorktreeManager(repo_path)
+
+        # Create issue provider if configured
+        issue_provider = None
+        if provider == "github" and settings.github_token and settings.github_repo:
+            issue_provider = GitHubIssueProvider(
+                token=settings.github_token,
+                repo_name=settings.github_repo,
+            )
+
+        # Create worktree
+        create_req = WorktreeCreate(
+            issue_id=issue_id,
+            provider=provider,
+            worktree_type=WorktreeType.ISSUE,
+            repo_path=repo_path,
+        )
+
+        worktree_info = manager.create_worktree(create_req, issue_provider)
+        return worktree_info
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post("/create/epic", response_model=WorktreeInfo)
@@ -85,10 +109,14 @@ async def list_worktrees(
     GET /worktrees/list?type=epic
     ```
     """
-    raise HTTPException(
-        status_code=501,
-        detail="Not implemented yet - coming soon!",
-    )
+    from ...core import WorktreeManager
+
+    try:
+        manager = WorktreeManager(repo_path)
+        worktree_list = manager.list_worktrees(worktree_type=worktree_type)
+        return worktree_list
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/{worktree_name}", response_model=WorktreeInfo)
